@@ -1,34 +1,36 @@
+# 네트워크 부분이 없는 이유는 컴포즈는 기본으로 디폴트 네트워크를 만들고 컨테이너를 만든 네트워크 안에 포함시켜주기 때문
 version: '3'
 services:
-  leafy-postgres:
+  leafy-postgres: # 서비스 이름 (default {프로젝트이름}_{서비스이름}_{번호})
     build: ./leafy-postgresql
-    image: leafy-postgres:5.0.0-compose
+    image: leafy-postgres:5.0.0-compose # 이미지 명
+    #container_name: leafy-postgres
     volumes:
       - mydata:/var/lib/postgresql/data
     deploy:
       resources:
         limits:
-          cpus: '1'
-          memory: 256M
-    restart: always
-
+          cpus: '1' # 최대 CPU 사용량
+          memory: '256M' # 최대 RAM 사용량
+    restart: always # 어떤 이유로 컨테이너 종료되어도 다시 자동으로 실행
   leafy-backend:
     build: ./leafy-backend
-    image: leafy-backend:5.0.0-compose
+    image: leafy-backend:5.0.0-compose # 해당 이미지가 있으면 그대로 실행, 없으면 ./leafy-backend 폴더의 이미지 빌드
+    #container_name: leafy-backend
     environment:
-      - DB_URL=leafy-postgres
+      - DB_URL=leafy-postgres 
     depends_on:
-      - leafy-postgres
+      - leafy-postgres # leafy-postgres 컨테이너가 실행되기 전까지 leafy-backend 컨테이너는 실행되지 않는다. (대상 컨테이너 RUNNING 상태 이후 동작)
     deploy:
       resources:
         limits:
-          cpus: '1.5'
-          memory: 512M
-    restart: on-failure
-      
+          cpus: '1.5' 
+          memory: '512M' 
+    restart: on-failure # 컨테이너가 OOM처럼 예상치 못하게 종료되었을 때만 자동으로 다시 실행
   leafy-front:
     build: ./leafy-frontend
-    image: leafy-front:5.0.0-compose
+    image: leafy-frontend:5.0.0-compose
+    #container_name: leafy-front
     environment:
       - BACKEND_HOST=leafy-backend
     ports:
@@ -38,9 +40,9 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '0.5'
-          memory: 64M
-    restart: on-failure
-
-volumes:
+          cpus: '0.5' 
+          memory: '64M'
+    restart: on-failure # 컨테이너가 OOM처럼 예상치 못하게 종료되었을 때만 자동으로 다시 실행  
+    
+volumes: # 볼륨 정의
   mydata:
